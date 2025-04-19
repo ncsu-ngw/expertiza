@@ -6,19 +6,28 @@ class ReviewBidsController < ApplicationController
 
   # action allowed function checks the action allowed based on the user working
   def action_allowed?
+    ALLOWED_ROLES = ['Instructor', # This list is for show, set_priority, and index
+    'Teaching Assistant',
+    'Administrator',
+    'Super-Administrator',
+    'Student']
+    PRIVILEGED_ROLES = ['Instructor',
+    'Teaching Assistant',
+    'Administrator',
+    'Super-Administrator']
+    if not ALLOWED_ROLES.include?(current_role_name)
+      return false
     case params[:action]
     when 'show', 'set_priority', 'index'
-      ['Instructor',
-       'Teaching Assistant',
-       'Administrator',
-       'Super-Administrator',
-       'Student'].include?(current_role_name) &&
-        ((%w[list].include? action_name) ? are_needed_authorizations_present?(params[:id], 'participant', 'reader', 'submitter', 'reviewer') : true)
+      # If the action is to list then we need a further check
+      if params[:action] == 'list'
+        return are_needed_authorizations_present?(params[:id], 'participant', 'reader', 'submitter', 'reviewer')
+      end
+      # Anything else we return true
+      return true
     else
-      ['Instructor',
-       'Teaching Assistant',
-       'Administrator',
-       'Super-Administrator'].include? current_role_name
+      # For any other action allow the privileged roles
+      PRIVILEGED_ROLES.include?(current_role_name)
     end
   end
 
