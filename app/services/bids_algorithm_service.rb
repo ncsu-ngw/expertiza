@@ -13,7 +13,7 @@ class BidsAlgorithmService
   # Runs the review bidding algorithm by sending data to the web service
   # @param assignment_id [int] The id of the assignment currently being interacted with
   # @param reviewer_ids [Array] A list of reviewer IDs that are associated with the users bidding
-  # @return [Hash] The data required for the bidding algortihm
+  # @return [Hash] The data required for the bidding algorithm
   def self.process_bidding(assignment_id, reviewer_ids)
     bidding_data = ReviewBid.bidding_data(assignment_id, reviewer_ids)
     matched_topics = run_bidding_algorithm(bidding_data)
