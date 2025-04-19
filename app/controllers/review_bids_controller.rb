@@ -34,14 +34,16 @@ class ReviewBidsController < ApplicationController
   # provides variables for reviewing page located at views/review_bids/others_work.html.erb
   def index
     @participant = AssignmentParticipant.find(params[:id])
-    return unless current_user_id?(@participant.user_id)
+    if @participant.nil?
+      flash[:error] = "Participant not found"
+      return 
+    if !current_user_id?(@participant.user_id)
+      flash[:error] = "Unauthorized to view page."
+      return
     @assignment = @participant.assignment
     @review_mappings = ReviewResponseMap.where(reviewer_id: @participant.id)
     # Finding how many reviews have been completed
-    @num_reviews_completed = 0
-    @review_mappings.each do |map|
-      @num_reviews_completed += 1 if !map.response.empty? && map.response.last.is_submitted
-    end
+    @completed_reviews_count = CompletedReviewCounterService.count_reviews(@review_mappings)
     # render view for completing reviews after review bidding has been completed
     render 'sign_up_sheet/review_bids_others_work'
   end
@@ -82,17 +84,7 @@ class ReviewBidsController < ApplicationController
       @bids = ReviewBid.where(participant_id: params[:id])
       signed_up_topics = ReviewBid.where(participant_id: params[:id]).map(&:signuptopic_id)
       signed_up_topics -= params[:topic].map(&:to_i)
-      signed_up_topics.each do |topic|
-        ReviewBid.where(signuptopic_id: topic, participant_id: params[:id]).destroy_all
-      end
-      params[:topic].each_with_index do |topic_id, index|
-        bid_existence = ReviewBid.where(signuptopic_id: topic_id, participant_id: params[:id])
-        if bid_existence.empty?
-          ReviewBid.create(priority: index + 1, signuptopic_id: topic_id, participant_id: params[:id], assignment_id: assignment_id)
-        else
-          ReviewBid.where(signuptopic_id: topic_id, participant_id: params[:id]).update_all(priority: index + 1)
-        end
-      end
+      ReviewBidPriorityService.process_bids(assignment_id, signed_up_topics)
     end
     redirect_to action: 'show', assignment_id: params[:assignment_id], id: params[:id]
   end
@@ -114,7 +106,7 @@ class ReviewBidsController < ApplicationController
   end
 
   def process_bidding(assignment_id, reviewer_ids)
-    ReviewBiddingAlgorithmService.process_bidding(assignment_id, reviewer_ids)
+    BidsAlgorithmService.process_bidding(assignment_id, reviewer_ids)
   end
 
   def ensure_valid_topics(matched_topics, reviewer_ids)
