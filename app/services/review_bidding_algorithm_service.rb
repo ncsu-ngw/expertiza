@@ -1,6 +1,6 @@
 # Service for running the review bidding algorithm.
 # This class interacts with an external web service to send and receive bidding data
-class ReviewBiddingAlgorithmService
+class BidsAlgorithmService
   # Runs the review bidding algorithm by sending data to the web service
   # @param bidding_data [Hash] The data required for the bidding algorithm
   # @return [Hash, false] The matched assignments as a JSON object, or false if an error occurs
