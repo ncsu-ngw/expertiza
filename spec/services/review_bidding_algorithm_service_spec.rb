@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe ReviewBiddingAlgorithmService do
+describe BidsAlgorithmService do
   include_context 'review bidding helpers'
 
   let(:service) { described_class }

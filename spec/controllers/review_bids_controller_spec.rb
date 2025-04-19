@@ -76,9 +76,9 @@ describe ReviewBidsController do
   end
 
   describe '#run_bidding_algorithm' do
-    let(:service_instance) { instance_double(ReviewBiddingAlgorithmService) }
+    let(:service_instance) { instance_double(BidsAlgorithmService) }
     before do
-      allow(ReviewBiddingAlgorithmService).to receive(:new).and_return(service_instance)
+      allow(BidsAlgorithmService).to receive(:new).and_return(service_instance)
       allow(service_instance).to receive(:run_bidding_algorithm)
     end
   end
